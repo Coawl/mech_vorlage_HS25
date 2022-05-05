@@ -32,8 +32,12 @@ def timerPinIRQ():
     global count
 
     count += 1          # Increase count
-    # ToDo
-    # ...
+    # TODO: Führen Sie folgende Schritte aus, wenn der Motor laufen soll, also wenn 'running' True ist
+    # 1. lesen Sie aus dem 'encoder'-Objekt die aktuelle Position aus
+    # 2. berechnen Sie mit Hilfe des 'pidcontroller' die neue Geschwindigkeit
+    # 3. setzen Sie auf dem Motor die errechnete Geschwindigkeit
+    # zusätzlich geben Sie Position, Geschwindigkeit und die PIDactions über den Logger aus
+
 
 def startPressed():
     """
@@ -44,10 +48,12 @@ def startPressed():
     """
     global running
 
-    # ToDo
-    # ...
-
     print("Starting")
+    logger.clean()
+    pidcontroller.reset()
+    encoder.resetPosition()
+    # TODO: Starten Sie den Motor
+
     running = True
 
 
@@ -61,13 +67,12 @@ def stopPressed():
     """
     global running
 
-    if running:  # Only the first time
-        running = False
-        # ToDo
-        # ...
-
+    if running:
         print("Stopping")
+        # TODO: Stopping Sie den Motor
+
         logger.showLoggings(feedback=True)
+        running = False
 
 
 if __name__ == '__main__':

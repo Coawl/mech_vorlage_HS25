@@ -7,10 +7,7 @@ class PIDController:
     Implements a PID controller.
     """
     def __init__(self):
-        """
-        Save relevant constants to self
-        """
-        # Predefine constants and set variables:
+        # Initialize variables
         self.refposition = 415               # Reference position in mm
         self.errorLinear = self.refposition  # Initial error
         self.errorIntegral = 0
@@ -34,19 +31,22 @@ class PIDController:
         Calculate next target values with the help of a PID controller.
         """
         # TODO:
-        #  1. Berechnen Sie
-        #     - den aktuellen Positions-Fehler 'errorLinear'
+        #  1. Speichern Sie den vorherigen Fehler in der Variablen
+        #     'errorLinearOld', berechnen Sie den neuen Fehler und
+        #     speichern Sie diesen in self.errorLinear
+        #  2. Berechnen Sie
+        #     - den aktuellen Positions-Fehler 'self.errorLinear'
         #     - das aktuelle Fehler-Integral 'errorIntegral'; denken
         #       Sie dabei an windup
         #     - das aktuelle Fehler-Derivative 'errorDerivative'
-        #  2. Berechnen Sie aus den Fehlern die P, I und D-Anteile;
+        #  3. Berechnen Sie aus den Fehlern die P, I und D-Anteile;
         #     Sie können diese Werte in den Variablen p_part, i_part
         #     und d_part abspeichern oder die Berechnungen direkt in die
         #     Liste der PIDactions schreiben
 
-        p_part = 0	# TODO
-        i_part = 0	# TODO
-        d_part = 0	# TODO
+        p_part = 0  # TODO: Berechnen Sie den P-Anteil
+        i_part = 0  # TODO: Berechnen Sie den I-Anteil
+        d_part = 0  # TODO: Berechnen Sie den D-Anteil
 
         # Save the three parts of the controller in a vector
         PIDactions = [p_part, i_part, d_part]

@@ -1,6 +1,5 @@
 # Copyright 2020 Hochschule Luzern - Informatik
 # Author: Peter Sollberger <peter.sollberger@hslu.ch>
-import logging
 from time import sleep, time
 from gpiozero import DigitalInputDevice, LED, Button
 from Encoder import Encoder
@@ -9,7 +8,7 @@ from PIDController import PIDController
 from Logger import Logger
 
 
-# Predefine constants:
+# Global variables
 running = False          # Controller state
 waitingtime = 1          # Waiting time in seconds for output
 
@@ -22,21 +21,20 @@ motor = Motor('GPIO16', 'GPIO17', 'GPIO18')
 def timerPinIRQ():
     """
     100 Hz timer for the regulator
-    Method is activated with timer IRQ and should contain all actions necessary:
+    Method is activated with timer IRQ and should contain all actions
+    necessary:
     1. Get current position
-    2. Get current speed from PID controller
-    3. Send current speed to Motor
+    2. Get speed from PID controller
+    3. Send speed to Motor
     4. Save significant data for visualization.
     """
-    current_position = encoder.getPosition()
-    motor_speed, pid_actions = pidcontroller.calculateTargetValue(current_position)
-    motor.setSpeed(motor_speed)
-    logger.log(current_position, motor_speed, pid_actions)
-    # TODO: Führen Sie folgende Schritte aus, wenn der Motor laufen soll, also wenn 'running' True ist
+    # TODO: Führen Sie folgende Schritte aus, wenn der Motor laufen soll, also
+    # wenn 'running' True ist
     #  1. lesen Sie aus dem 'encoder'-Objekt die aktuelle Position aus
     #  2. berechnen Sie mit Hilfe des 'pidcontroller' die neue Geschwindigkeit
     #  3. setzen Sie auf dem Motor die errechnete Geschwindigkeit
-    #  zusätzlich geben Sie Position, Geschwindigkeit und die PIDactions über den Logger aus
+    #  zusätzlich geben Sie Position, Geschwindigkeit und die PIDactions über
+    #  den Logger aus
 
 
 def startPressed():
@@ -92,8 +90,11 @@ if __name__ == '__main__':
     stopButton.when_activated = stopPressed
 
     try:
+        # Dieser Teil des Programms ist nur für die Ausgabe der aktuellen
+        # Position und Geschwindigkeit zuständig. Die eigentliche Regelung
+        # geschieht mit der Funktion timerPinIRQ()
         while True:
-            """ 
+            """
             Endlessly do:
             get time, position and speed
             print position and speed

@@ -2,7 +2,6 @@
 # Author: Peter Sollberger <peter.sollberger@hslu.ch>
 
 from gpiozero import LED
-from RPi import GPIO
 from spidev import SpiDev
 
 

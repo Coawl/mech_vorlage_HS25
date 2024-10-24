@@ -18,10 +18,12 @@ class PIDControllerTest(unittest.TestCase):
                          "integral error should be 0 at initialisation")
 
     def test_7steps(self):
-        # Um sicherzustellen, dass für den Test auch wirklich die richtigen PID-Parameter verwendet werden,
-        # setzen wir diese vor den Tests auf die Werte, die auch im Excel-Sheet verwendet wurden. Auf diese
-        # Weise können Sie die produktiven Parameter in PIDController.py nach Bedarf anpassen und müssen nicht
-        # befürchten, dass diese Tests deswegen plötzlich nicht mehr durchlaufen
+        # Um sicherzustellen, dass für den Test auch wirklich die richtigen
+        # PID-Parameter verwendet werden, setzen wir diese vor den Tests auf
+        # die Werte, die auch im Excel-Sheet verwendet wurden. Auf diese Weise
+        # können Sie die produktiven Parameter in PIDController.py nach Bedarf
+        # anpassen und müssen nicht befürchten, dass diese Tests deswegen
+        # plötzlich nicht mehr durchlaufen
         self.pid.kp = 0.5
         self.pid.ki = 0.05
         self.pid.kd = 0.005
@@ -41,10 +43,12 @@ class PIDControllerTest(unittest.TestCase):
         self.assertAlmostEqual(self.pid.errorIntegral, ..., 3)
 
     def test_antiwindup(self):
-        # Um möglichst schnell in den Windup-Fall zu laufen, verwenden wir hier ein paar aggressivere PID-Parameter.
-        # Auch hier entsprechen diese aber wieder den Werten im Excel-Sheet.
-        # ACHTUNG: Da wir auch die refposition verändern, müssen wir zusätzlich reset() aufrufen, da innerhalb dieser
-        # Funktion self.errorLinear auf refposition zurück gesetzt wird.
+        # Um möglichst schnell in den Windup-Fall zu laufen, verwenden wir
+        # hier ein paar aggressivere PID-Parameter. Auch hier entsprechen
+        # diese aber wieder den Werten im Excel-Sheet.
+        # ACHTUNG: Da wir auch die refposition verändern, müssen wir
+        # zusätzlich reset() aufrufen, da innerhalb dieser Funktion
+        # self.errorLinear auf refposition zurück gesetzt wird.
         self.pid.kp = 0.5
         self.pid.ki = 0.5
         self.pid.kd = 0.005
@@ -58,6 +62,7 @@ class PIDControllerTest(unittest.TestCase):
         self.assertEqual(self.pid.calculateTargetValue(100)[0], ...)
         self.assertEqual(self.pid.calculateTargetValue(200)[0], ...)
 
-        # TODO: Je nach Ihrer Berechnung im Excel-Sheet müssen Sie auch in der folgenden Zeile den zweiten Parameter
-        #  noch Ihrem Excel-Sheet gemäss anpassen
+        # TODO: Je nach Ihrer Berechnung im Excel-Sheet müssen Sie auch in der
+        # folgenden Zeile den zweiten Parameter noch Ihrem Excel-Sheet gemäss
+        # anpassen
         self.assertAlmostEqual(self.pid.errorIntegral, 1023 / self.pid.ki, 3)

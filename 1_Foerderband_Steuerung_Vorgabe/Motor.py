@@ -1,13 +1,16 @@
 # Copyright 2020 Hochschule Luzern - Informatik
 # Author: Peter Sollberger <peter.sollberger@hslu.ch>
+# Modified for Raspberry Pi 5 compatibility
 
 from gpiozero import LED
 from spidev import SpiDev
+
 
 class Motor:
     """
     Conveyor belt motor controller.
     """
+
     def __init__(self, direction_pin_nbr, brake_pin_nbr, stop_pin_nbr):
         """
         Initialize motor.
@@ -80,3 +83,13 @@ class Motor:
         self.stop_pin.off()
         self.brake_pin.off()
         self.speed = 0
+
+    def cleanup(self):
+        """
+        Clean up resources when done with motor.
+        """
+        self.stop()
+        self.spi.close()
+        self.direction_pin.close()
+        self.brake_pin.close()
+        self.stop_pin.close()

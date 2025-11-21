@@ -2,54 +2,53 @@
 # Author: Simon van Hemert <simon.vanhemert@hslu.ch>
 # Author: Peter Sollberger <peter.sollberger@hslu.ch>
 
-import sys
+from matplotlib import pyplot as plt
 from array import array
 from multiprocessing import Process
-
+import sys
 import numpy as np
-from matplotlib import pyplot as plt
 
 
 class Logger:
     """"
-    Logs position and speed and on request visualizes collected values concurrently
+    Logs current value and current voltage and on request visualizes collected values concurrently
     """
 
-    def __init__(self, kp, ki, kd, refposition):
+    def __init__(self, kp, ki, kd, reference_value):
         """
         Create a logger and save parameters for displaying.
         """
         self.__title = "Kp = " + str(round(kp, 3)) + " Tn = " + str(round(ki, 3)) + " Tv = " + str(round(kd, 3)) \
-                       + " Refpos = " + str(round(refposition, 0))
-        self.__speeds = array('l')
-        self.__positions = array('l')
+                       + " Refpos = " + str(round(reference_value, 0))
+        self.__outputs = array('l')
+        self.__values = array('l')
         self.__Paction = array('f')
         self.__Iaction = array('f')
         self.__Daction = array('f')
-        self.refpos = refposition
+        self.refpos = reference_value
 
     def clean(self):
         """
         Remove all previously stored values.
         """
-        del self.__positions
-        del self.__speeds
+        del self.__values
+        del self.__outputs
         del self.__Paction
         del self.__Iaction
         del self.__Daction
 
-        self.__speeds = array('l')
-        self.__positions = array('l')
+        self.__outputs = array('l')
+        self.__values = array('l')
         self.__Paction = array('f')
         self.__Iaction = array('f')
         self.__Daction = array('f')
 
-    def log(self, position, speed, PIDactions):
+    def log(self, value, output, PIDactions):
         """
         Add a data tuple to the log.
         """
-        self.__positions.append(position)
-        self.__speeds.append(speed)
+        self.__values.append(value)
+        self.__outputs.append(output)
         self.__Paction.append(PIDactions[0])
         self.__Iaction.append(PIDactions[1])
         self.__Daction.append(PIDactions[2])
@@ -58,7 +57,7 @@ class Logger:
         """
         Display a graph of the recorded values.
         """
-        t = Process(target=self.displayPlot, args=(self.__positions.tolist(), self.__speeds.tolist(), self.__title,
+        t = Process(target=self.displayPlot, args=(self.__values.tolist(), self.__outputs.tolist(), self.__title,
                                                    [self.__Paction, self.__Iaction, self.__Daction],
                                                    feedback, self.refpos, save))
         t.start()

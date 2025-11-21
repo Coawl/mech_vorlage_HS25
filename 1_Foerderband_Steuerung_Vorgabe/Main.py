@@ -1,21 +1,26 @@
 # Copyright 2020 Hochschule Luzern - Informatik
 # Author: Peter Sollberger <peter.sollberger@hslu.ch>
+# Modified for Raspberry Pi 5 compatibility
+
+import select
+import sys
 from time import sleep, time
-from gpiozero import DigitalInputDevice, LED, Button
+from gpiozero import DigitalInputDevice, Button
+
 from Encoder import Encoder
 from Motor import Motor
 from PIDController import PIDController
 from Logger import Logger
 
-
 # Global variables
-running = False           # Controller state
-waiting_time = 1          # Waiting time in seconds for output
+running = False  # Controller state
+waiting_time = 1  # Waiting time in seconds for output
 
+# Objects - using BCM GPIO numbering (plain integers)
 pidcontroller = PIDController()
 logger = Logger(pidcontroller.kp, pidcontroller.Tn, pidcontroller.Tv, pidcontroller.reference_value)
 encoder = Encoder(23, 24)
-motor = Motor('GPIO16', 'GPIO17', 'GPIO18')
+motor = Motor(16, 17, 18)  # Changed from 'GPIO16' to 16, etc.
 
 
 def timer_pin_irq():
@@ -28,13 +33,11 @@ def timer_pin_irq():
     3. Send voltage to Motor
     4. Save significant data for visualization.
     """
-    # TODO: Führen Sie folgende Schritte aus, wenn der Motor laufen soll, also
-    # wenn 'running' True ist
-    #  1. lesen Sie aus dem 'encoder'-Objekt die aktuelle Position aus
-    #  2. berechnen Sie mit Hilfe des 'pidcontroller' die neue Geschwindigkeit
-    #  3. setzen Sie auf dem Motor die errechnete Geschwindigkeit
-    #  zusätzlich geben Sie Position, Geschwindigkeit und die PIDactions über
-    #  den Logger aus
+    if running:
+        current_position = encoder.get_position()
+        motor_voltage, pid_actions = pidcontroller.calculate_controller_output(current_position)
+        motor.set_voltage(motor_voltage)
+        logger.log(current_position, motor_voltage, pid_actions)
 
 
 def start_pressed():
@@ -73,6 +76,20 @@ def stop_pressed():
         running = False
 
 
+def cleanup():
+    """
+    Clean up all resources
+    """
+    global timerPin, startButton, stopButton, motor, encoder
+
+    print("Cleaning up...")
+    motor.cleanup()
+    encoder.cleanup()
+    timerPin.close()
+    startButton.close()
+    stopButton.close()
+
+
 if __name__ == '__main__':
     """
     Main loop outputs actual position and speed every second.
@@ -80,9 +97,9 @@ if __name__ == '__main__':
     print("Starting main")
 
     # Define pins
-    timerPin = DigitalInputDevice('GPIO25')
-    startButton = Button('GPIO05')
-    stopButton = Button('GPIO06')
+    timerPin = DigitalInputDevice(25)
+    startButton = Button(5)
+    stopButton = Button(6)
 
     # Register ISR on input signals
     timerPin.when_activated = timer_pin_irq
@@ -103,10 +120,24 @@ if __name__ == '__main__':
             now = time()
             pos = encoder.get_position()
             v = motor.get_voltage()
-            print("Position [mm]:", pos, "Voltage [%]: ", v*100)
+            print("Position [mm]:", pos, "Voltage [%]: ", v * 100)
+
+            if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
+                line = sys.stdin.readline().strip()
+
+                if line == "s":
+                    print("Tastatur: Start gedrückt (s)")
+                    start_pressed()  # gleiche Funktion wie Button
+
+                elif line == "q":
+                    print("Tastatur: Stop/Beenden gedrückt (q)")
+                    stop_pressed()  # Motor/Regelung stoppen
+                    break  # main loop verlassen
+
             elapsed = time() - now
-            sleep(waiting_time - elapsed)
+            sleep(max(0.0, waiting_time - elapsed))
 
     except KeyboardInterrupt:
         stop_pressed()
         timerPin.close()
+        cleanup()

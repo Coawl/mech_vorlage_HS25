@@ -6,12 +6,13 @@ class PIDController:
     """
     Implements a PID controller.
     """
+
     def __init__(self):
         # Initialize variables
-        self.reference_value = 415                # Reference position in mm
+        self.reference_value = 415  # Reference (e.g. position in mm)
         self.error_linear = self.reference_value  # Initial error
         self.error_integral = 0
-        self.anti_windup = 1023                      # Anti-windup for Integrator, 1023 equals 5V = max speed
+        self.anti_windup = 1023  # Anti-windup for Integrator, 1023 equals 5V = max speed
 
         # PID constants:
         self.kp = 0.5
@@ -22,16 +23,10 @@ class PIDController:
         """
         Restore controller with initial values.
         """
-        self.error_linear = self.reference_value
+        self.error_linear = 0
         self.error_integral = 0
 
     def calculate_controller_output(self, actual_value):
-
-        velocity = (actual_value - self.last_value) / 0.01
-        acceleration = (velocity-self.last_velocity) / 0.01
-
-        self.last_velocity = velocity
-        self.last_value = actual_value
 
         """
         Calculate next target values with the help of a PID controller.

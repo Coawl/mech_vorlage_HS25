@@ -1,50 +1,81 @@
 # Copyright 2020 Hochschule Luzern - Informatik
 # Author: Peter Sollberger <peter.sollberger@hslu.ch>
-import RPi.GPIO as GPIO
+# Modified for Raspberry Pi 5 compatibility
+
+import lgpio
 
 
 class Encoder:
     """
     Maintains position from encoder signals A and B.
     """
-    pos = 0
-    last = 0
-    delta = 0
-    bits = 0
-    lastToggle = -1
 
-    def __init__(self, input_a, input_b):
+    def __init__(self, input_a, input_b, chip=4):
         """
         Initialize encoder
         :param input_a: Input pin for encoder signal A
         :param input_b: Input pin for encoder signal B
         """
-        GPIO.setwarnings(False)
-        GPIO.setmode(GPIO.BCM)  # Use BCM GPIO numbers
+        self.pos = 0
+        self.last = 0
+        self.delta = 0
+        self.bits = 0
+        self.lastToggle = -1
 
         self.input_a = input_a
         self.input_b = input_b
 
-        GPIO.setup(self.input_a, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-        GPIO.setup(self.input_b, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        # Open GPIO chip
+        self.chip_handle = lgpio.gpiochip_open(chip)
 
-        GPIO.add_event_detect(self.input_a, GPIO.BOTH, callback=self.__input_callback)  # add edge detection on channel
-        GPIO.add_event_detect(self.input_b, GPIO.BOTH, callback=self.__input_callback)  # add edge detection on channel
+        # Configure pins as inputs with pull-down
+        lgpio.gpio_claim_input(self.chip_handle, self.input_a, lgpio.SET_PULL_DOWN)
+        lgpio.gpio_claim_input(self.chip_handle, self.input_b, lgpio.SET_PULL_DOWN)
+
+        # Set up edge detection callbacks for both rising and falling edges
+        lgpio.gpio_claim_alert(self.chip_handle, self.input_a, lgpio.BOTH_EDGES)
+        lgpio.gpio_claim_alert(self.chip_handle, self.input_b, lgpio.BOTH_EDGES)
+
+        # Start callback thread
+        self.callback_a = lgpio.callback(self.chip_handle, self.input_a, lgpio.BOTH_EDGES, self.__input_callback)
+        self.callback_b = lgpio.callback(self.chip_handle, self.input_b, lgpio.BOTH_EDGES, self.__input_callback)
 
     def __del__(self):
         """
         Stop and clean up.
         """
-        GPIO.remove_event_detect(self.input_a)
-        GPIO.remove_event_detect(self.input_b)
+        self.cleanup()
 
-    def __input_callback(self, channel):
+    def cleanup(self):
+        """
+        Clean up GPIO resources.
+        """
+        try:
+            # Cancel callbacks
+            if hasattr(self, 'callback_a'):
+                self.callback_a.cancel()
+            if hasattr(self, 'callback_b'):
+                self.callback_b.cancel()
+
+            # Free GPIO pins
+            if hasattr(self, 'chip_handle'):
+                lgpio.gpio_free(self.chip_handle, self.input_a)
+                lgpio.gpio_free(self.chip_handle, self.input_b)
+                lgpio.gpiochip_close(self.chip_handle)
+        except:
+            pass
+
+    def __input_callback(self, chip, gpio, level, tick):
         """
         ISR on both input signals.
+        :param chip: GPIO chip handle
+        :param gpio: GPIO pin that triggered
+        :param level: New level (0 or 1)
+        :param tick: Timestamp in microseconds
         """
         b = self.bits
-        m = 1 << channel
-        if GPIO.input(channel):
+        m = 1 << gpio
+        if level:
             b |= m
         else:
             b &= ~m
@@ -76,6 +107,13 @@ class Encoder:
         """
         # 1024 tics/rotation, 4 edge-detects pro tic, pi * 58 mm/rotation
         return int(self.pos / 1024.0 / 4.0 * 3.142 * 58.0)
+
+    def get_position_raw(self):
+        """
+        Get raw position count.
+        :return: Current raw position
+        """
+        return self.pos
 
     def reset_position(self):
         """

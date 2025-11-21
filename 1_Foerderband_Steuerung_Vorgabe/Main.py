@@ -72,7 +72,7 @@ def stop_pressed():
         print("Stopping")
         # TODO: Stopping Sie den Motor
 
-        logger.showLoggings(feedback=True)
+        logger.showLoggings(feedback=True, save=True)
         running = False
 
 

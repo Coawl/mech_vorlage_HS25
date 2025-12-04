@@ -15,7 +15,7 @@ class PIDController: #Eine Klasse ist ein Objekttyp
         self.anti_windup = 1023  # Anti-windup for Integrator, 1023 equals 5V = max speed
 
         # PID constants:
-        self.kp = 260 * 1023 / 36 #self.kp->nimm dein eigenes kp; das aus der eigenen Klasse
+        self.kp = 260 / 1023 * 36 #self.kp->nimm dein eigenes kp; das aus der eigenen Klasse
         self.Tn = 27
         self.Tv = 0.001
 

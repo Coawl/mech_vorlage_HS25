@@ -2,22 +2,22 @@
 # Author: Simon van Hemert <simon.vanhemert@hslu.ch>
 # Author: Peter Sollberger <peter.sollberger@hslu.ch>
 
-class PIDController: #Eine Klasse ist ein Objekttyp
+class PIDControllerVelocity: #Eine Klasse ist ein Objekttyp
     """
     Implements a PID controller.
     """
 
     def __init__(self):
         # Initialize variables
-        self.reference_value = 415  # Reference (e.g. position in mm)
+        self.reference_value = 100  # Reference (setpoint: 10 mm/s)
         self.error_linear = self.reference_value  # Initial error
         self.error_integral = 0
         self.anti_windup = 1023  # Anti-windup for Integrator, 1023 equals 5V = max speed
 
         #PID constants: Semesterleistung HS25
-        self.kp = 260 / 1023 * 36 #self.kp->nimm dein eigenes kp; das aus der eigenen Klasse
-        self.Tn = 27
-        self.Tv = 0.001
+        self.kp = 85 / 36 * 1023 /1000#self.kp->nimm dein eigenes kp; das aus der eigenen Klasse
+        self.Tn = 0.175
+        self.Tv = 0
 
     def reset(self): #Klassen können Funktionen enthalten
         """
